@@ -8,44 +8,148 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root"
-import { Route as IndexRouteImport } from "./routes/index"
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as DiplomaGeneratorRouteImport } from './routes/diploma-generator'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as EventsIndexRouteImport } from './routes/events/index'
+import { Route as EventsNewRouteImport } from './routes/events/new'
+import { Route as EventsEventIdIndexRouteImport } from './routes/events/$eventId/index'
+import { Route as EventsEventIdDiplomaRouteImport } from './routes/events/$eventId/diploma'
 
+const DiplomaGeneratorRoute = DiplomaGeneratorRouteImport.update({
+  id: '/diploma-generator',
+  path: '/diploma-generator',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsIndexRoute = EventsIndexRouteImport.update({
+  id: '/events/',
+  path: '/events/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsNewRoute = EventsNewRouteImport.update({
+  id: '/events/new',
+  path: '/events/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsEventIdIndexRoute = EventsEventIdIndexRouteImport.update({
+  id: '/events/$eventId/',
+  path: '/events/$eventId/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsEventIdDiplomaRoute = EventsEventIdDiplomaRouteImport.update({
+  id: '/events/$eventId/diploma',
+  path: '/events/$eventId/diploma',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute
+  '/': typeof IndexRoute
+  '/diploma-generator': typeof DiplomaGeneratorRoute
+  '/events/new': typeof EventsNewRoute
+  '/events/': typeof EventsIndexRoute
+  '/events/$eventId/diploma': typeof EventsEventIdDiplomaRoute
+  '/events/$eventId/': typeof EventsEventIdIndexRoute
 }
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute
+  '/': typeof IndexRoute
+  '/diploma-generator': typeof DiplomaGeneratorRoute
+  '/events/new': typeof EventsNewRoute
+  '/events': typeof EventsIndexRoute
+  '/events/$eventId/diploma': typeof EventsEventIdDiplomaRoute
+  '/events/$eventId': typeof EventsEventIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  "/": typeof IndexRoute
+  '/': typeof IndexRoute
+  '/diploma-generator': typeof DiplomaGeneratorRoute
+  '/events/new': typeof EventsNewRoute
+  '/events/': typeof EventsIndexRoute
+  '/events/$eventId/diploma': typeof EventsEventIdDiplomaRoute
+  '/events/$eventId/': typeof EventsEventIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: "/"
+  fullPaths:
+    | '/'
+    | '/diploma-generator'
+    | '/events/new'
+    | '/events/'
+    | '/events/$eventId/diploma'
+    | '/events/$eventId/'
   fileRoutesByTo: FileRoutesByTo
-  to: "/"
-  id: "__root__" | "/"
+  to:
+    | '/'
+    | '/diploma-generator'
+    | '/events/new'
+    | '/events'
+    | '/events/$eventId/diploma'
+    | '/events/$eventId'
+  id:
+    | '__root__'
+    | '/'
+    | '/diploma-generator'
+    | '/events/new'
+    | '/events/'
+    | '/events/$eventId/diploma'
+    | '/events/$eventId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DiplomaGeneratorRoute: typeof DiplomaGeneratorRoute
+  EventsNewRoute: typeof EventsNewRoute
+  EventsIndexRoute: typeof EventsIndexRoute
+  EventsEventIdDiplomaRoute: typeof EventsEventIdDiplomaRoute
+  EventsEventIdIndexRoute: typeof EventsEventIdIndexRoute
 }
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/": {
-      id: "/"
-      path: "/"
-      fullPath: "/"
+    '/diploma-generator': {
+      id: '/diploma-generator'
+      path: '/diploma-generator'
+      fullPath: '/diploma-generator'
+      preLoaderRoute: typeof DiplomaGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/': {
+      id: '/events/'
+      path: '/events'
+      fullPath: '/events/'
+      preLoaderRoute: typeof EventsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/new': {
+      id: '/events/new'
+      path: '/events/new'
+      fullPath: '/events/new'
+      preLoaderRoute: typeof EventsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/$eventId/': {
+      id: '/events/$eventId/'
+      path: '/events/$eventId'
+      fullPath: '/events/$eventId/'
+      preLoaderRoute: typeof EventsEventIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/$eventId/diploma': {
+      id: '/events/$eventId/diploma'
+      path: '/events/$eventId/diploma'
+      fullPath: '/events/$eventId/diploma'
+      preLoaderRoute: typeof EventsEventIdDiplomaRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -53,14 +157,19 @@ declare module "@tanstack/react-router" {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DiplomaGeneratorRoute: DiplomaGeneratorRoute,
+  EventsNewRoute: EventsNewRoute,
+  EventsIndexRoute: EventsIndexRoute,
+  EventsEventIdDiplomaRoute: EventsEventIdDiplomaRoute,
+  EventsEventIdIndexRoute: EventsEventIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 
-import type { getRouter } from "./router.tsx"
-import type { createStart } from "@tanstack/react-start"
-declare module "@tanstack/react-start" {
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>

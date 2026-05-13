@@ -3,11 +3,45 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 
+@font-face {
+    font-family: "Cursor Gothic";
+    src: url("/font/CursorGothic-Regular.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Cursor Gothic";
+    src: url("/font/CursorGothic-Italic.ttf") format("truetype");
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Cursor Gothic";
+    src: url("/font/CursorGothic-Bold.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Cursor Gothic";
+    src: url("/font/CursorGothic-BoldItalic.ttf") format("truetype");
+    font-style: italic;
+    font-weight: 700;
+    font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
+    --color-brand: var(--brand);
+    --color-brand-foreground: var(--brand-foreground);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -72,6 +106,8 @@
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
+    --brand: #ff5c00;
+    --brand-foreground: #ffffff;
     --radius: 0.625rem;
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
@@ -84,37 +120,41 @@
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
+    /* Cursor theme: near-black canvas, orange primary/brand, zinc borders */
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --card: #121212;
+    --card-foreground: #ededed;
+    --popover: #161616;
+    --popover-foreground: #ededed;
+    --primary: #ff5c00;
+    --primary-foreground: #ffffff;
+    --secondary: #161616;
+    --secondary-foreground: #ededed;
+    --muted: #141414;
+    --muted-foreground: #a1a1a1;
+    --accent: #1c1c1c;
+    --accent-foreground: #ededed;
     --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --border: #262626;
+    --input: #27272a;
+    --ring: #ff6b00;
+    --brand: #ff5c00;
+    --brand-foreground: #ffffff;
+    --chart-1: #ff6b00;
+    --chart-2: #a1a1a1;
+    --chart-3: #52525b;
+    --chart-4: #3f3f46;
+    --chart-5: #27272a;
+    --radius: 0.875rem;
+    --sidebar: #050505;
+    --sidebar-foreground: #ededed;
+    --sidebar-primary: #ff5c00;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #161616;
+    --sidebar-accent-foreground: #ededed;
+    --sidebar-border: #262626;
+    --sidebar-ring: #ff6c00;
 }
 
 @layer base {
@@ -129,5 +169,11 @@
     }
   html {
     @apply font-sans;
+    }
+}
+
+@layer utilities {
+  .font-certificate {
+    font-family: "Cursor Gothic", "Geist Variable", sans-serif;
     }
 }

@@ -1,3 +1,7 @@
+# Cursor Community Hub
+
+TanStack Start app with a **Diploma generator** (CSV → certificates → PDF / PNG ZIP).
+
 # TanStack Start + shadcn/ui
 
 This is a template for a new TanStack Start project with React, TypeScript, and shadcn/ui.

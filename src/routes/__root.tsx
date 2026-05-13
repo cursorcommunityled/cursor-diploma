@@ -3,6 +3,7 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 
 import appCss from "../styles.css?url"
+import { AppShell } from "@/components/app-shell"
 
 export const Route = createRootRoute({
   head: () => ({
@@ -15,7 +16,7 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "TanStack Start Starter",
+        title: "Cursor Community Hub",
       },
     ],
     links: [
@@ -26,9 +27,9 @@ export const Route = createRootRoute({
     ],
   }),
   notFoundComponent: () => (
-    <main className="container mx-auto p-4 pt-16">
-      <h1>404</h1>
-      <p>The requested page could not be found.</p>
+    <main className="text-foreground container mx-auto max-w-2xl p-4 pt-16">
+      <h1 className="text-2xl font-semibold">404</h1>
+      <p className="text-muted-foreground mt-2">The requested page could not be found.</p>
     </main>
   ),
   shellComponent: RootDocument,
@@ -36,12 +37,12 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <HeadContent />
       </head>
-      <body>
-        {children}
+      <body className="antialiased">
+        <AppShell>{children}</AppShell>
         <TanStackDevtools
           config={{
             position: "bottom-right",
