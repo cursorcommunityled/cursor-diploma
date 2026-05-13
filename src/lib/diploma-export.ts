@@ -18,6 +18,7 @@ const PDF_FONT_REGULAR_FILE = "CursorGothic-Regular.ttf"
 const PDF_FONT_BOLD_FILE = "CursorGothic-Bold.ttf"
 const PDF_FONT_REGULAR_URL = "/font/CursorGothic-Regular.ttf"
 const PDF_FONT_BOLD_URL = "/font/CursorGothic-Bold.ttf"
+const CERTIFICATE_EXPORT_PIXEL_RATIO = 3
 
 type PdfFonts = {
   family: string
@@ -49,7 +50,7 @@ export async function certificateElementToPng(
   const backgroundColor = getExportBackgroundColor(el)
   const dataUrl = await toPng(el, {
     cacheBust: true,
-    pixelRatio: 2,
+    pixelRatio: CERTIFICATE_EXPORT_PIXEL_RATIO,
     ...(backgroundColor ? { backgroundColor } : {}),
     filter: (node) =>
       node instanceof HTMLElement
@@ -432,28 +433,67 @@ export async function buildPdfFromDiplomas(
   return pdf.output("blob")
 }
 
-/** Multi-page PDF: one page per PNG; page size from first page. */
+function fullBleedImageRect(
+  imageWidth: number,
+  imageHeight: number
+): { x: number; y: number; width: number; height: number } {
+  if (imageWidth <= 0 || imageHeight <= 0) {
+    return {
+      x: 0,
+      y: 0,
+      width: PDF_PAGE_WIDTH_PT,
+      height: PDF_PAGE_HEIGHT_PT,
+    }
+  }
+
+  const pageRatio = PDF_PAGE_WIDTH_PT / PDF_PAGE_HEIGHT_PT
+  const imageRatio = imageWidth / imageHeight
+  const width =
+    imageRatio > pageRatio
+      ? PDF_PAGE_HEIGHT_PT * imageRatio
+      : PDF_PAGE_WIDTH_PT
+  const height =
+    imageRatio > pageRatio
+      ? PDF_PAGE_HEIGHT_PT
+      : PDF_PAGE_WIDTH_PT / imageRatio
+
+  return {
+    x: (PDF_PAGE_WIDTH_PT - width) / 2,
+    y: (PDF_PAGE_HEIGHT_PT - height) / 2,
+    width,
+    height,
+  }
+}
+
+/** Multi-page PDF: one fixed A4 landscape page per captured preview PNG. */
 export async function buildPdfFromPngBlobs(pngBlobs: Array<Blob>): Promise<Blob> {
   if (pngBlobs.length === 0) {
     throw new Error("No pages to add to PDF")
   }
-  const firstUrl = await blobToDataUrl(pngBlobs[0] ?? new Blob())
-  const firstImg = await loadImage(firstUrl)
-  const w = firstImg.naturalWidth
-  const h = firstImg.naturalHeight
-  const orientation = w >= h ? "landscape" : "portrait"
+
   const pdf = new jsPDF({
-    unit: "px",
-    format: [w, h],
-    orientation,
+    unit: "pt",
+    format: [...PDF_PAGE_FORMAT],
+    orientation: "landscape",
+    compress: true,
   })
+
   let pageIndex = 0
   for (const b of pngBlobs) {
     const dataUrl = await blobToDataUrl(b)
+    const img = await loadImage(dataUrl)
+    const placement = fullBleedImageRect(img.naturalWidth, img.naturalHeight)
     if (pageIndex > 0) {
-      pdf.addPage([w, h], orientation)
+      pdf.addPage([...PDF_PAGE_FORMAT], "landscape")
     }
-    pdf.addImage(dataUrl, "PNG", 0, 0, w, h)
+    pdf.addImage(
+      dataUrl,
+      "PNG",
+      placement.x,
+      placement.y,
+      placement.width,
+      placement.height
+    )
     pageIndex += 1
   }
   return pdf.output("blob")
@@ -494,8 +534,11 @@ export function downloadBlob(
   const url = URL.createObjectURL(blob)
   a.href = url
   a.download = filename
+  a.style.display = "none"
+  document.body.append(a)
   a.click()
   setTimeout(() => {
+    a.remove()
     URL.revokeObjectURL(url)
-  }, 0)
+  }, 1000)
 }

@@ -4,7 +4,10 @@ import { Link } from "@tanstack/react-router"
 import {
   ChevronLeft,
   ChevronRight,
+  FileDown,
+  ImageIcon,
   LayoutGrid,
+  Loader2,
   RotateCcw,
 } from "lucide-react"
 
@@ -32,7 +35,7 @@ import { inferNameColumnKey, rowsToAttendees } from "@/lib/csv-attendees"
 import { createDraftForEvent } from "@/lib/diploma-types"
 import {
   attendeePngName,
-  buildPdfFromDiplomas,
+  buildPdfFromPngBlobs,
   buildZipOfPngs,
   certificateElementToPng,
   downloadBlob,
@@ -47,6 +50,13 @@ function safeFileStem(s: string): string {
       .replaceAll(/\s+/g, "-")
       .slice(0, 80) || "diplomas"
   )
+}
+
+function currentCertificateFileStem(
+  eventTitle: string,
+  attendeeName: string
+): string {
+  return safeFileStem(`${eventTitle}-${attendeeName}`)
 }
 
 function raf(): Promise<void> {
@@ -121,17 +131,20 @@ export type DiplomaWorkspaceProps = {
   eventId: string
 }
 
+type ExportMode = "all-pdf" | "all-png-zip" | "current-pdf" | "current-png"
+
 export function DiplomaWorkspace({ eventId }: DiplomaWorkspaceProps) {
   const [draft, setDraft] = useState<DiplomaDraftV1 | null>(null)
   const [parseError, setParseError] = useState<string | null>(null)
   const [storageHint, setStorageHint] = useState<string | null>(null)
-  const [exportBusy, setExportBusy] = useState(false)
+  const [exportMode, setExportMode] = useState<ExportMode | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
   const [previewIdx, setPreviewIdx] = useState(0)
   const [activeControlId, setActiveControlId] = useState<string | null>(null)
   const sidebarRef = useRef<HTMLElement>(null)
   const previewRef = useRef<DiplomaPreviewHandle>(null)
   const previewIdxBeforeExport = useRef(0)
+  const exportBusy = exportMode !== null
 
   useEffect(() => {
     setDraft(loadDiplomaDraft(eventId, seedEventForDiploma(eventId)))
@@ -254,7 +267,7 @@ export function DiplomaWorkspace({ eventId }: DiplomaWorkspaceProps) {
   }, [])
 
   const runExport = useCallback(
-    async (mode: "pdf" | "zip") => {
+    async (mode: ExportMode) => {
       if (!draft) {
         return
       }
@@ -269,30 +282,48 @@ export function DiplomaWorkspace({ eventId }: DiplomaWorkspaceProps) {
         return
       }
       previewIdxBeforeExport.current = previewIdx
-      setExportBusy(true)
+      setExportMode(mode)
       try {
         await waitForCertificateFonts()
+        const capturePreviews = async (indices: Array<number>) => {
+          const blobs: Array<Blob> = []
+          for (const index of indices) {
+            flushSync(() => setPreviewIdx(index))
+            await raf()
+            await raf()
+            blobs.push(await certificateElementToPng(el))
+          }
+          return blobs
+        }
+
         const stem = safeFileStem(draft.event.title)
-        if (mode === "pdf") {
-          const pdf = await buildPdfFromDiplomas(
-            draft.attendees.map((attendee) => ({
-              template: draft.template,
-              backgroundDataUrl: draft.backgroundDataUrl,
-              displayName: attendee.displayName,
-              eventTitle: draft.event.title,
-            }))
+        if (mode === "current-pdf" || mode === "current-png") {
+          const currentIndex = Math.min(previewIdx, draft.attendees.length - 1)
+          const attendee = draft.attendees[currentIndex]
+          const blob = (await capturePreviews([currentIndex]))[0]
+
+          const fileStem = currentCertificateFileStem(
+            draft.event.title,
+            attendee.displayName
           )
+          if (mode === "current-png") {
+            downloadBlob(`${fileStem}.png`, blob)
+            return
+          }
+
+          const pdf = await buildPdfFromPngBlobs([blob])
+          downloadBlob(`${fileStem}.pdf`, pdf)
+          return
+        }
+
+        const indices = draft.attendees.map((_, index) => index)
+        const blobs = await capturePreviews(indices)
+        if (mode === "all-pdf") {
+          const pdf = await buildPdfFromPngBlobs(blobs)
           downloadBlob(`${stem}.pdf`, pdf)
           return
         }
 
-        const blobs: Array<Blob> = []
-        for (let i = 0; i < draft.attendees.length; i++) {
-          flushSync(() => setPreviewIdx(i))
-          await raf()
-          await raf()
-          blobs.push(await certificateElementToPng(el))
-        }
         const files = draft.attendees.map((a, i) => ({
           fileName: attendeePngName(a.displayName, i),
           blob: blobs[i],
@@ -305,7 +336,7 @@ export function DiplomaWorkspace({ eventId }: DiplomaWorkspaceProps) {
         )
       } finally {
         flushSync(() => setPreviewIdx(previewIdxBeforeExport.current))
-        setExportBusy(false)
+        setExportMode(null)
       }
     },
     [draft, previewIdx]
@@ -336,6 +367,8 @@ export function DiplomaWorkspace({ eventId }: DiplomaWorkspaceProps) {
       </div>
     )
   }
+
+  const currentExportDisabled = draft.attendees.length === 0 || exportBusy
 
   return (
     <div className="h-[calc(100dvh-3.5rem)] overflow-hidden bg-background text-foreground">
@@ -459,8 +492,8 @@ export function DiplomaWorkspace({ eventId }: DiplomaWorkspaceProps) {
             <ExportPanel
               busy={exportBusy}
               canExport={draft.attendees.length > 0}
-              onExportPdf={() => void runExport("pdf")}
-              onExportZip={() => void runExport("zip")}
+              onExportPdf={() => void runExport("all-pdf")}
+              onExportZip={() => void runExport("all-png-zip")}
               error={exportError}
             />
           </ControlSection>
@@ -478,37 +511,71 @@ export function DiplomaWorkspace({ eventId }: DiplomaWorkspaceProps) {
                   12x12 snap grid. Drag any foreground item.
                 </p>
               </div>
-              {draft.attendees.length > 1 ? (
+              <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
                   <Button
                     type="button"
-                    variant="outline"
-                    size="icon-sm"
-                    aria-label="Previous attendee"
-                    disabled={previewIdx <= 0}
-                    onClick={() => setPreviewIdx((i) => Math.max(0, i - 1))}
+                    variant="secondary"
+                    size="sm"
+                    disabled={currentExportDisabled}
+                    onClick={() => void runExport("current-pdf")}
                   >
-                    <ChevronLeft className="size-4" />
+                    {exportMode === "current-pdf" ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <FileDown className="size-3.5" />
+                    )}
+                    Export current PDF
                   </Button>
-                  <span className="text-muted-foreground min-w-16 text-center text-xs">
-                    {previewIdx + 1} / {draft.attendees.length}
-                  </span>
                   <Button
                     type="button"
                     variant="outline"
-                    size="icon-sm"
-                    aria-label="Next attendee"
-                    disabled={previewIdx >= draft.attendees.length - 1}
-                    onClick={() =>
-                      setPreviewIdx((i) =>
-                        Math.min(draft.attendees.length - 1, i + 1)
-                      )
-                    }
+                    size="sm"
+                    disabled={currentExportDisabled}
+                    onClick={() => void runExport("current-png")}
                   >
-                    <ChevronRight className="size-4" />
+                    {exportMode === "current-png" ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <ImageIcon className="size-3.5" />
+                    )}
+                    Export current PNG
                   </Button>
                 </div>
-              ) : null}
+                {draft.attendees.length > 1 ? (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon-sm"
+                      aria-label="Previous attendee"
+                      disabled={previewIdx <= 0 || exportBusy}
+                      onClick={() => setPreviewIdx((i) => Math.max(0, i - 1))}
+                    >
+                      <ChevronLeft className="size-4" />
+                    </Button>
+                    <span className="text-muted-foreground min-w-16 text-center text-xs">
+                      {previewIdx + 1} / {draft.attendees.length}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon-sm"
+                      aria-label="Next attendee"
+                      disabled={
+                        previewIdx >= draft.attendees.length - 1 || exportBusy
+                      }
+                      onClick={() =>
+                        setPreviewIdx((i) =>
+                          Math.min(draft.attendees.length - 1, i + 1)
+                        )
+                      }
+                    >
+                      <ChevronRight className="size-4" />
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
             </div>
 
             <div className="min-h-0 flex-1 overflow-hidden p-6">
