@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
-import type { PointerEvent, ReactNode } from "react"
 import { Plus, Trash2 } from "lucide-react"
+import type { PointerEvent, ReactNode } from "react"
 
 import type {
   DiplomaTemplate,
