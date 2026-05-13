@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import type { ReactNode } from "react"
 import { flushSync } from "react-dom"
 import { Link } from "@tanstack/react-router"
 import {
@@ -16,6 +15,7 @@ import { DiplomaPreview } from "./diploma-preview"
 import { EventDetailsForm } from "./event-details-form"
 import { ExportPanel } from "./export-panel"
 import { TemplateControls } from "./template-controls"
+import type { ReactNode } from "react"
 import type { DiplomaPreviewHandle } from "./diploma-preview"
 import type {
   DiplomaDraftV1,
@@ -32,7 +32,7 @@ import { inferNameColumnKey, rowsToAttendees } from "@/lib/csv-attendees"
 import { createDraftForEvent } from "@/lib/diploma-types"
 import {
   attendeePngName,
-  buildPdfFromPngBlobs,
+  buildPdfFromDiplomas,
   buildZipOfPngs,
   certificateElementToPng,
   downloadBlob,
@@ -272,6 +272,20 @@ export function DiplomaWorkspace({ eventId }: DiplomaWorkspaceProps) {
       setExportBusy(true)
       try {
         await waitForCertificateFonts()
+        const stem = safeFileStem(draft.event.title)
+        if (mode === "pdf") {
+          const pdf = await buildPdfFromDiplomas(
+            draft.attendees.map((attendee) => ({
+              template: draft.template,
+              backgroundDataUrl: draft.backgroundDataUrl,
+              displayName: attendee.displayName,
+              eventTitle: draft.event.title,
+            }))
+          )
+          downloadBlob(`${stem}.pdf`, pdf)
+          return
+        }
+
         const blobs: Array<Blob> = []
         for (let i = 0; i < draft.attendees.length; i++) {
           flushSync(() => setPreviewIdx(i))
@@ -279,18 +293,12 @@ export function DiplomaWorkspace({ eventId }: DiplomaWorkspaceProps) {
           await raf()
           blobs.push(await certificateElementToPng(el))
         }
-        const stem = safeFileStem(draft.event.title)
-        if (mode === "pdf") {
-          const pdf = await buildPdfFromPngBlobs(blobs)
-          downloadBlob(`${stem}.pdf`, pdf)
-        } else {
-          const files = draft.attendees.map((a, i) => ({
-            fileName: attendeePngName(a.displayName, i),
-            blob: blobs[i],
-          }))
-          const z = await buildZipOfPngs(files)
-          downloadBlob(`${stem}.zip`, z)
-        }
+        const files = draft.attendees.map((a, i) => ({
+          fileName: attendeePngName(a.displayName, i),
+          blob: blobs[i],
+        }))
+        const z = await buildZipOfPngs(files)
+        downloadBlob(`${stem}.zip`, z)
       } catch (e) {
         setExportError(
           e instanceof Error ? e.message : "Export failed. Try again."

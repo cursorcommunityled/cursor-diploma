@@ -1,3 +1,4 @@
+import "@fontsource-variable/geist/index.css"
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
@@ -16,7 +17,7 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "Cursor Community Hub",
+        title: "Cursor Diploma Generator",
       },
     ],
     links: [

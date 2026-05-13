@@ -1,4 +1,4 @@
-# Cursor Community Hub
+# Cursor Diploma Generator
 
 TanStack Start app with a **Diploma generator** (CSV → certificates → PDF / PNG ZIP).
 

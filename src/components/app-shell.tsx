@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router"
-import { CalendarRange, ChevronRight, LayoutGrid } from "lucide-react"
+import { CalendarRange, ChevronRight } from "lucide-react"
 
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -25,16 +25,18 @@ export function AppShell({ children, className }: AppShellProps) {
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
           <Link
             to="/"
-            className="text-foreground flex items-center gap-2 text-sm font-semibold tracking-tight"
+            aria-label="Cursor Diploma Generator, home"
+            className="text-foreground flex items-center gap-3 text-sm font-semibold tracking-tight"
           >
-            <span
-              className="bg-foreground/10 text-foreground border-border inline-flex size-8 items-center justify-center rounded-none border"
-              aria-hidden
-            >
-              <LayoutGrid className="size-4" />
-            </span>
-            <span className="hidden sm:inline">Cursor Community Hub</span>
-            <span className="sm:hidden">Hub</span>
+            <img
+              src="/cursor.svg"
+              alt=""
+              width={120}
+              height={28}
+              className="h-6 w-auto sm:h-7"
+            />
+            <span className="hidden sm:inline">Cursor Diploma Generator</span>
+            <span className="sm:hidden">Diploma</span>
           </Link>
           <nav className="flex items-center gap-1 sm:gap-2" aria-label="Main">
             <Link
