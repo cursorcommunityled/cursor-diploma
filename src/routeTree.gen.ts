@@ -9,21 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as DiplomaGeneratorRouteImport } from './routes/diploma-generator'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DiplomaGeneratorRouteImport } from './routes/diploma-generator'
 import { Route as EventsIndexRouteImport } from './routes/events/index'
 import { Route as EventsNewRouteImport } from './routes/events/new'
 import { Route as EventsEventIdIndexRouteImport } from './routes/events/$eventId/index'
 import { Route as EventsEventIdDiplomaRouteImport } from './routes/events/$eventId/diploma'
 
-const DiplomaGeneratorRoute = DiplomaGeneratorRouteImport.update({
-  id: '/diploma-generator',
-  path: '/diploma-generator',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiplomaGeneratorRoute = DiplomaGeneratorRouteImport.update({
+  id: '/diploma-generator',
+  path: '/diploma-generator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsIndexRoute = EventsIndexRouteImport.update({
@@ -110,18 +110,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/diploma-generator': {
-      id: '/diploma-generator'
-      path: '/diploma-generator'
-      fullPath: '/diploma-generator'
-      preLoaderRoute: typeof DiplomaGeneratorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diploma-generator': {
+      id: '/diploma-generator'
+      path: '/diploma-generator'
+      fullPath: '/diploma-generator'
+      preLoaderRoute: typeof DiplomaGeneratorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events/': {
