@@ -57,5 +57,11 @@
     "vite": "^7.3.1",
     "vitest": "^3.2.4",
     "web-vitals": "^5.1.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "fast-uri": "3.1.9",
+      "undici": "7.30.1"
+    }
   }
 }
